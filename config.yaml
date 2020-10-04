@@ -1,7 +1,0 @@
-database:
-  'DB_HOST': 'localhost'
-  'DB_PORT': 5432
-  'DB_NAME': 'visionLabs'
-  'DB_USER': 'postgres'
-  'DB_PASS': 'q!109707!'
-  'SQLALCHEMY_TRACK_MODIFICATIONS': False
