@@ -1,7 +1,11 @@
 from aiohttp import web
 from app.utils import get_amount_of_red, get_image
 from app import models as db
-from aiohttp.web_request import Request
+from aiohttp.web_exceptions import HTTPBadRequest, HTTPNotFound
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 async def images(request):
@@ -16,7 +20,7 @@ async def images(request):
     try:
         account_id = int(request.rel_url.query['account_id'])
     except KeyError as e:
-        return web.Response(text=f"Need all parameters query: {e}")
+        raise HTTPBadRequest(text=str(e))
     tag = request.rel_url.query.get('tag', None)
 
     image = await get_image(request)
@@ -40,7 +44,7 @@ async def get_image_inf(request):
         return web.json_response({'image_id': res['image_id'], 'account_id': res['account_id'],
                                   'red': float(res['red']), 'tag': res['tag']})
     else:
-        return web.Response(text=f"Image with id={image_id} does not exist")
+        raise HTTPNotFound()
 
 
 async def del_image(request):
@@ -56,7 +60,7 @@ async def del_image(request):
     if im_id:
         return web.Response(text=f"Image deleted with id = {im_id}")
     else:
-        return web.Response(text=f"No picture in DB with id = {image_id}")
+        raise HTTPNotFound()
 
 
 async def get_images_count(request):
@@ -70,9 +74,9 @@ async def get_images_count(request):
     """
     params = request.rel_url.query
     try:
-        ac_id, tag, red_tg = int(params['account_id']), params['tag'], params['red_tg']
+        ac_id, tag, red_tg = int(params['account_id']), params['tag'], float(params['red_tg'])
     except KeyError as e:
-        return web.Response(text=f"Need all parameters query: {e}")
+        raise HTTPBadRequest(text=str(e))
 
     async with request.app['db_pool'].acquire() as conn:
         count = await db.get_count_by_params(conn, ac_id, tag, red_tg)
